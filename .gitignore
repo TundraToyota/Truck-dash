@@ -1,0 +1,9 @@
+# Personal data — never publish backups (they contain your maintenance records)
+truck-maintenance-backup-*.json
+
+# Personal project notes — not part of the app
+Truck_Stuff_Project_Info.md
+
+# Local tooling
+.claude/
+_*.py

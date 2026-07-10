@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="robots" content="noindex, nofollow">
+<title>Truck Maintenance Dashboard</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Truck Maint">
+<meta name="theme-color" content="#14171c">
+<style>
+  :root {
+    --bg: #14171c;
+    --panel: #1d232b;
+    --panel2: #242c36;
+    --border: #313b47;
+    --text: #e8ebef;
+    --muted: #98a4b3;
+    --accent: #f0863c;
+    --green: #4caf7d;
+    --amber: #e6b04c;
+    --red: #e35d5d;
+    --blue: #5b9bd5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    padding-bottom: 60px;
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 1.25em; font-weight: 600; letter-spacing: 0.5px; }
+  header h1 .wrench { color: var(--accent); }
+  #vehicleSelect {
+    margin-left: auto;
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 0.95em;
+  }
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 10px 18px 0;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  nav button {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 16px;
+    font-size: 1em;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  main { padding: 20px 22px; max-width: 1200px; margin: 0 auto; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1.05em; margin-bottom: 12px; color: var(--text); font-weight: 600; }
+  .card h2 .sub { color: var(--muted); font-weight: 400; font-size: 0.85em; margin-left: 8px; }
+  .stat-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    flex: 1;
+    min-width: 170px;
+  }
+  .stat .label { color: var(--muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.8px; }
+  .stat .value { font-size: 1.7em; font-weight: 700; margin-top: 2px; }
+  .stat .value small { font-size: 0.5em; color: var(--muted); font-weight: 400; }
+  .stat .hint { color: var(--muted); font-size: 0.78em; margin-top: 4px; }
+  input, select, textarea {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 0.95em;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
+  input[type="number"] { width: 110px; }
+  input[type="date"] { width: 150px; }
+  label { color: var(--muted); font-size: 0.85em; display: block; margin-bottom: 3px; }
+  .btn {
+    background: var(--accent);
+    color: #1a1208;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  .btn.danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+  .btn.small { padding: 4px 10px; font-size: 0.82em; }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+  .form-row > div { display: flex; flex-direction: column; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92em; }
+  th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid #262e38; vertical-align: middle; }
+  tr:hover td { background: #20272f; }
+  .due-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--green);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--panel2);
+    flex-wrap: wrap;
+  }
+  .due-item.amber { border-left-color: var(--amber); }
+  .due-item.red { border-left-color: var(--red); }
+  .due-item.gray { border-left-color: var(--muted); }
+  .due-item .name { font-weight: 600; min-width: 200px; flex: 1; }
+  .due-item .detail { color: var(--muted); font-size: 0.85em; }
+  .due-item .when { text-align: right; min-width: 160px; }
+  .due-item .when .primary { font-weight: 600; }
+  .due-item.red .when .primary { color: var(--red); }
+  .due-item.amber .when .primary { color: var(--amber); }
+  .due-item.green .when .primary { color: var(--green); }
+  .progress {
+    height: 6px;
+    background: #2c3540;
+    border-radius: 3px;
+    width: 100%;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .progress > div { height: 100%; border-radius: 3px; background: var(--green); }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge.red { background: rgba(227,93,93,0.18); color: var(--red); }
+  .badge.amber { background: rgba(230,176,76,0.15); color: var(--amber); }
+  .badge.green { background: rgba(76,175,125,0.15); color: var(--green); }
+  .badge.gray { background: rgba(152,164,179,0.15); color: var(--muted); }
+  .muted { color: var(--muted); }
+  .small { font-size: 0.85em; }
+  .icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1em; padding: 3px 6px; }
+  .icon-btn:hover { color: var(--red); }
+  .icon-btn.edit:hover { color: var(--accent); }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .empty { color: var(--muted); font-style: italic; padding: 14px 4px; }
+  #toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--green);
+    color: #10241a;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 8px;
+    display: none;
+    z-index: 50;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+  }
+  dialog {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    max-width: 560px;
+    width: 92%;
+  }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  dialog h3 { margin-bottom: 14px; }
+  .cat-tag { font-size: 0.75em; color: var(--blue); }
+  svg text { fill: var(--muted); font-size: 11px; }
+  @media (max-width: 640px) {
+    main { padding: 14px 10px; }
+    .due-item .when { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="wrench">&#128295;</span> Truck Maintenance Dashboard</h1>
+  <select id="vehicleSelect" onchange="switchVehicle(this.value)"></select>
+</header>
+
+<nav>
+  <button data-tab="dashboard" class="active" onclick="showTab('dashboard')">Dashboard</button>
+  <button data-tab="schedule" onclick="showTab('schedule')">Schedule &amp; Backfill</button>
+  <button data-tab="servicelog" onclick="showTab('servicelog')">Service Log</button>
+  <button data-tab="mods" onclick="showTab('mods')">Mods &amp; Upgrades</button>
+  <button data-tab="fuel" onclick="showTab('fuel')">Fuel</button>
+  <button data-tab="settings" onclick="showTab('settings')">Settings</button>
+</nav>
+
+<main>
+  <div id="tab-dashboard"></div>
+  <div id="tab-schedule" style="display:none"></div>
+  <div id="tab-servicelog" style="display:none"></div>
+  <div id="tab-mods" style="display:none"></div>
+  <div id="tab-fuel" style="display:none"></div>
+  <div id="tab-settings" style="display:none"></div>
+</main>
+
+<div id="toast"></div>
+<dialog id="modal"></dialog>
+
+<script>
+/* ============================================================
+   Truck Maintenance Dashboard — single-file app
+   Data auto-saves to localStorage; Export/Import JSON for backup.
+   ============================================================ */
+
+const STORAGE_KEY = "truckMaintenanceData_v1";
+const DUE_SOON_KM = 1500;      // amber threshold (km remaining)
+const DUE_SOON_DAYS = 30;      // amber threshold (days remaining)
+const DEFAULT_KM_PER_DAY = 40; // fallback until odometer history exists
+
+/* ---------- Pre-loaded schedule: 2014 Tundra 5.7L, severe/special-condition ---------- */
+function tundraScheduleTemplate() {
+  const items = [
+    ["Engine oil & filter (0W-20)", "Engine", 8000, 6, "Severe schedule. 7.5 L (7.9 US qt) with filter. OEM cartridge filter 04152-YZZA4."],
+    ["Tire rotation", "Tires", 8000, 6, "Rotate front-to-rear same side. Check pressures (typically 30 psi cold, door jamb)."],
+    ["Chassis / driveshaft lube", "Drivetrain", 8000, 6, "Grease driveshaft zerks (slip yoke + U-joints) at every oil change under severe use. While under there: check U-joints for play/rust dust and front CV boots for tears or slung grease."],
+    ["Engine air filter", "Engine", 30000, 24, "Inspect sooner if driving dusty gravel roads. OEM 17801-0S010."],
+    ["Cabin air filter", "Interior", 20000, 12, "Behind glovebox. OEM 87139-YZZ08 or equivalent."],
+    ["Front differential fluid", "Drivetrain", 30000, 24, "Severe (towing/off-road). Toyota Differential Gear Oil LT 75W-85 GL-5 (00279-DGOLT-01), ~2.0 L."],
+    ["Rear differential fluid", "Drivetrain", 30000, 24, "Severe (towing/off-road). Toyota LT 75W-85 GL-5 per manual, ~3.6 L (4WD). 75W-90 GL-5 is a common heavier substitute for towing."],
+    ["Transfer case fluid", "Drivetrain", 30000, 24, "Severe (towing/off-road). Toyota Transfer Gear Oil LF SAE 75W ONLY (00279-DGOLF-01) — do NOT use 75W-90 in the 2013+ case."],
+    ["Transmission fluid (Toyota WS)", "Drivetrain", 100000, 72, "AB60F. Sealed unit — drain & fill with genuine WS ATF, check level via check plug at temp."],
+    ["Spark plugs (iridium)", "Engine", 190000, 120, "3UR-FE takes 8 plugs — Denso SK20HR11 (OEM 90919-01191), gap 1.0-1.1 mm. Torque 21 N·m (15 lb-ft)."],
+    ["Engine coolant (Toyota SLLC pink)", "Cooling", 80000, 60, "First change due 160,000 km / 10 yr, then every 80,000 km / 5 yr. Adjust 'last done' accordingly."],
+    ["Brake fluid flush", "Brakes", 40000, 36, "DOT 3. Moisture absorption matters more than km — the 3-year clock is the real limit."],
+    ["Serpentine belt", "Engine", 150000, 96, "Inspect from 100,000 km for cracks/glazing. Bando/Mitsuboshi or OEM."],
+    ["Front brake pads & rotors", "Brakes", 70000, null, "Wear estimate — inspect at every rotation. Towing shortens life."],
+    ["Rear brake pads & rotors", "Brakes", 80000, null, "Wear estimate — inspect at every rotation."],
+    ["Tires (replace)", "Tires", 80000, 72, "Whichever first: tread wear or 6 years from DOT date (rubber ages)."],
+    ["Battery", "Electrical", null, 60, "Alberta winters are hard on batteries. Load-test each fall after year 3."],
+    ["Shocks / dampers", "Suspension", 100000, null, "Wear estimate. Check for leaks/fade — off-road use shortens life."],
+    ["Power steering fluid flush", "Steering", 80000, 60, "Not factory-scheduled (inspect only) — preventative. Uses ATF Dexron-III/WS per cap."],
+    ["Wiper blades", "Exterior", null, 12, "Replace yearly, ideally before winter."],
+    ["Inspect ball joints & control arm bushings", "Suspension", 20000, 12, "Wheel off ground: rock tire top-bottom (12-6) for play, pry-test lower joints, check boots for tears. Clunks over bumps or wandering steering = worn. Cracked/oil-soaked bushings = replace. Typical ball joint life 150,000-250,000 km — uppers usually fail first."],
+    ["Inspect tie rod ends (inner & outer)", "Steering", 20000, 12, "Rock tire side-to-side (9-3) for play; grab each end and feel for movement; check outer boots. Loose/vague steering, clunk on turn-in, or inner-edge tire wear = worn. Typical life 120,000-200,000 km. Alignment required after replacement."],
+    ["Inspect center support (carrier) bearing", "Drivetrain", 20000, 12, "Double Cab runs a 2-piece driveshaft. Check the rubber cushion for cracks/sag and the bearing for play or roughness. Vibration at highway speed or a shudder/clunk on takeoff = failing. Typical life 150,000-250,000 km; mud and water crossings shorten it."],
+    ["Inspect wheel bearings", "Suspension", 20000, 12, "Wheel off ground: spin for growl; rock at 12-6 with a helper on the brake to separate bearing play from ball joint play. Hum/growl that changes with speed or cornering load = failing. Bolt-on hub assemblies, typically 200,000+ km."],
+    ["Inspect sway bar end links & bushings", "Suspension", 20000, 12, "Rattle or clunk over small bumps at low speed usually = end links. Check link boots and D-bushing rubber for cracks. Cheap parts, easy fix."],
+    ["Inspect brake hoses & hard lines", "Brakes", 20000, 12, "Alberta salt: check rubber hoses for cracking/bulging near the fittings and hard lines for rust scale — especially above the rear axle and along the frame rails. Any weeping = replace immediately."]
+  ];
+  return items.map(function(it, i) {
+    return {
+      id: "s" + (i + 1),
+      name: it[0],
+      category: it[1],
+      intervalKm: it[2],
+      intervalMonths: it[3],
+      lastKm: null,
+      lastDate: null,
+      unknown: false,
+      notes: it[4]
+    };
+  });
+}
+
+function genericScheduleTemplate() {
+  const items = [
+    ["Engine oil & filter", "Engine", 8000, 6],
+    ["Tire rotation", "Tires", 8000, 6],
+    ["Engine air filter", "Engine", 30000, 24],
+    ["Cabin air filter", "Interior", 20000, 12],
+    ["Brake fluid flush", "Brakes", 40000, 36],
+    ["Engine coolant", "Cooling", 80000, 60],
+    ["Front brake pads & rotors", "Brakes", 70000, null],
+    ["Rear brake pads & rotors", "Brakes", 80000, null],
+    ["Tires (replace)", "Tires", 80000, 72],
+    ["Battery", "Electrical", null, 60]
+  ];
+  return items.map(function(it, i) {
+    return { id: "s" + (i + 1), name: it[0], category: it[1], intervalKm: it[2],
+             intervalMonths: it[3], lastKm: null, lastDate: null, unknown: false, notes: "" };
+  });
+}
+
+/* ---------- State ---------- */
+let state = null;
+
+function defaultState() {
+  return {
+    version: 1,
+    activeVehicleId: "tundra",
+    vehicles: [{
+      id: "tundra",
+      name: "2014 Tundra DC SR5 5.7L",
+      details: "Double Cab, 3UR-FE V8, 4WD, mid-rise canopy — Alberta",
+      odometerLog: [{ date: todayStr(), km: 130000 }],
+      kmPerDayOverride: null,
+      schedule: tundraScheduleTemplate(),
+      serviceLog: [],
+      mods: [],
+      fuelLog: []
+    }]
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { state = JSON.parse(raw); migrateNotes(); migrateNewItems(); return; }
+  } catch (e) { console.error(e); }
+  state = defaultState();
+  save();
+}
+
+/* One-time spec corrections (2026-07-08): replaces notes only if they still
+   exactly match an old default, so user-edited notes are never overwritten. */
+function migrateNotes() {
+  const fixes = {
+    "Severe schedule. 8.5 L with filter. OEM filter 90915-YZZD3.":
+      "Severe schedule. 7.5 L (7.9 US qt) with filter. OEM cartridge filter 04152-YZZA4.",
+    "Severe (towing/off-road). 75W-85 GL-5 synthetic.":
+      "Severe (towing/off-road). Toyota Differential Gear Oil LT 75W-85 GL-5 (00279-DGOLT-01), ~2.0 L.",
+    "Severe (towing/off-road). 75W-90 GL-5 synthetic (75W-85 acceptable).":
+      "Severe (towing/off-road). Toyota LT 75W-85 GL-5 per manual, ~3.6 L (4WD). 75W-90 GL-5 is a common heavier substitute for towing.",
+    "Severe (towing/off-road). 75W-90 GL-4/GL-5 gear oil per manual.":
+      "Severe (towing/off-road). Toyota Transfer Gear Oil LF SAE 75W ONLY (00279-DGOLF-01) — do NOT use 75W-90 in the 2013+ case.",
+    "3UR-FE takes 8 plugs — Denso SC20HR11 / NGK equivalent. Do not overtorque (18 lb-ft).":
+      "3UR-FE takes 8 plugs — Denso SK20HR11 (OEM 90919-01191), gap 1.0-1.1 mm. Torque 21 N·m (15 lb-ft).",
+    "Grease driveshaft zerks (slip yoke + U-joints) at every oil change under severe use.":
+      "Grease driveshaft zerks (slip yoke + U-joints) at every oil change under severe use. While under there: check U-joints for play/rust dust and front CV boots for tears or slung grease."
+  };
+  let changed = false;
+  (state.vehicles || []).forEach(function(v) {
+    (v.schedule || []).forEach(function(it) {
+      if (fixes[it.notes]) { it.notes = fixes[it.notes]; changed = true; }
+    });
+  });
+  if (changed) save();
+}
+
+/* Adds schedule items introduced after first release to the Tundra's saved
+   data (matched by name, so nothing the user added or renamed is duplicated). */
+function migrateNewItems() {
+  const v = state.vehicles.find(function(x) { return x.id === "tundra"; });
+  if (!v || !v.schedule) return;
+  let changed = false;
+  const deleted = v.deletedDefaults || [];
+  tundraScheduleTemplate().forEach(function(tpl) {
+    const exists = v.schedule.some(function(it) { return it.name === tpl.name; });
+    if (!exists && deleted.indexOf(tpl.name) === -1) { tpl.id = uid(); v.schedule.push(tpl); changed = true; }
+  });
+  if (changed) save();
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function veh() {
+  return state.vehicles.find(function(v) { return v.id === state.activeVehicleId; }) || state.vehicles[0];
+}
+
+/* ---------- Helpers ---------- */
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function fmtKm(n) { return n == null ? "—" : Math.round(n).toLocaleString("en-CA") + " km"; }
+function fmtMoney(n) { return (n == null || n === "" || isNaN(n)) ? "—" : "$" + Number(n).toFixed(2); }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function fmtDate(d) {
+  if (!d) return "—";
+  const dt = new Date(d + "T00:00:00");
+  return dt.toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" });
+}
+function daysBetween(a, b) { return (new Date(b) - new Date(a)) / 86400000; }
+function addMonths(dateStr, months) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
+
+function currentKm() {
+  const log = veh().odometerLog;
+  if (!log.length) return 0;
+  return log.reduce(function(m, r) { return r.km > m ? r.km : m; }, 0);
+}
+
+/* Average km/day from odometer log (up to last ~180 days of readings) */
+function kmPerDay() {
+  const v = veh();
+  if (v.kmPerDayOverride) return v.kmPerDayOverride;
+  const log = v.odometerLog.slice().sort(function(a, b) { return a.date < b.date ? -1 : 1; });
+  if (log.length < 2) return DEFAULT_KM_PER_DAY;
+  const last = log[log.length - 1];
+  let first = log[0];
+  for (let i = log.length - 2; i >= 0; i--) {
+    if (daysBetween(log[i].date, last.date) >= 180) { first = log[i]; break; }
+    first = log[i];
+  }
+  const days = daysBetween(first.date, last.date);
+  if (days < 7) return DEFAULT_KM_PER_DAY;
+  const rate = (last.km - first.km) / days;
+  return rate > 1 ? rate : DEFAULT_KM_PER_DAY;
+}
+
+/* ---------- Prediction engine ---------- */
+/* Returns { status, dueKm, dueDate, kmRemaining, daysRemaining, projectedDate, limiter } */
+function predict(item) {
+  const nowKm = currentKm();
+  const rate = kmPerDay();
+  const today = todayStr();
+
+  if (item.unknown || (item.lastKm == null && item.lastDate == null)) {
+    return { status: "unknown" };
+  }
+
+  let kmRemaining = null, dueKm = null;
+  if (item.intervalKm != null && item.lastKm != null) {
+    dueKm = item.lastKm + item.intervalKm;
+    kmRemaining = dueKm - nowKm;
+  }
+
+  let daysByDate = null, dueDate = null;
+  if (item.intervalMonths != null && item.lastDate != null) {
+    dueDate = addMonths(item.lastDate, item.intervalMonths);
+    daysByDate = daysBetween(today, dueDate);
+  }
+
+  const daysByKm = kmRemaining != null ? kmRemaining / rate : null;
+
+  let daysRemaining, limiter;
+  if (daysByKm != null && (daysByDate == null || daysByKm <= daysByDate)) {
+    daysRemaining = daysByKm; limiter = "km";
+  } else if (daysByDate != null) {
+    daysRemaining = daysByDate; limiter = "date";
+  } else {
+    return { status: "unknown" };
+  }
+
+  const projected = new Date();
+  projected.setDate(projected.getDate() + Math.round(daysRemaining));
+  const projectedDate = projected.toISOString().slice(0, 10);
+
+  let status = "green";
+  if ((kmRemaining != null && kmRemaining <= 0) || (daysByDate != null && daysByDate <= 0)) status = "red";
+  else if ((kmRemaining != null && kmRemaining <= DUE_SOON_KM) || daysRemaining <= DUE_SOON_DAYS) status = "amber";
+
+  return { status: status, dueKm: dueKm, dueDate: dueDate, kmRemaining: kmRemaining,
+           daysRemaining: daysRemaining, projectedDate: projectedDate, limiter: limiter };
+}
+
+/* ---------- Tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll("nav button").forEach(function(b) {
+    b.classList.toggle("active", b.dataset.tab === name);
+  });
+  ["dashboard", "schedule", "servicelog", "mods", "fuel", "settings"].forEach(function(t) {
+    document.getElementById("tab-" + t).style.display = t === name ? "" : "none";
+  });
+  render();
+}
+
+function activeTab() {
+  const b = document.querySelector("nav button.active");
+  return b ? b.dataset.tab : "dashboard";
+}
+
+function render() {
+  renderVehicleSelect();
+  const t = activeTab();
+  if (t === "dashboard") renderDashboard();
+  if (t === "schedule") renderSchedule();
+  if (t === "servicelog") renderServiceLog();
+  if (t === "mods") renderMods();
+  if (t === "fuel") renderFuel();
+  if (t === "settings") renderSettings();
+}
+
+function renderVehicleSelect() {
+  const sel = document.getElementById("vehicleSelect");
+  sel.innerHTML = state.vehicles.map(function(v) {
+    return '<option value="' + v.id + '"' + (v.id === state.activeVehicleId ? " selected" : "") + ">" + esc(v.name) + "</option>";
+  }).join("");
+}
+
+function switchVehicle(id) {
+  state.activeVehicleId = id;
+  save();
+  render();
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard() {
+  const v = veh();
+  const nowKm = currentKm();
+  const rate = kmPerDay();
+  const items = v.schedule.map(function(it) { return { item: it, p: predict(it) }; });
+
+  const overdue = items.filter(function(x) { return x.p.status === "red"; });
+  const soon = items.filter(function(x) { return x.p.status === "amber"; });
+  const ok = items.filter(function(x) { return x.p.status === "green"; });
+  const unknown = items.filter(function(x) { return x.p.status === "unknown"; });
+
+  const order = { red: 0, amber: 1, green: 2, unknown: 3 };
+  items.sort(function(a, b) {
+    if (order[a.p.status] !== order[b.p.status]) return order[a.p.status] - order[b.p.status];
+    return (a.p.daysRemaining != null ? a.p.daysRemaining : 1e9) - (b.p.daysRemaining != null ? b.p.daysRemaining : 1e9);
+  });
+
+  let html = '<div class="stat-row">' +
+    '<div class="stat"><div class="label">Current Odometer</div><div class="value">' + Math.round(nowKm).toLocaleString("en-CA") + ' <small>km</small></div>' +
+      '<div class="hint">last logged ' + fmtDate(latestOdoDate()) + '</div></div>' +
+    '<div class="stat"><div class="label">Average Use</div><div class="value">' + rate.toFixed(0) + ' <small>km/day</small></div>' +
+      '<div class="hint">' + (v.kmPerDayOverride ? "manual override" : v.odometerLog.length < 2 ? "default — log readings to calibrate" : "from odometer history") + '</div></div>' +
+    '<div class="stat"><div class="label">Overdue</div><div class="value" style="color:var(--red)">' + overdue.length + '</div></div>' +
+    '<div class="stat"><div class="label">Due Soon</div><div class="value" style="color:var(--amber)">' + soon.length + '</div></div>' +
+    '<div class="stat"><div class="label">Up To Date</div><div class="value" style="color:var(--green)">' + ok.length + '</div></div>' +
+  '</div>';
+
+  html += '<div class="card"><h2>Update Odometer <span class="sub">log a reading every week or two — predictions get sharper</span></h2>' +
+    '<div class="form-row">' +
+    '<div><label>Odometer (km)</label><input type="number" id="odoKm" value="' + Math.round(nowKm) + '"></div>' +
+    '<div><label>Date</label><input type="date" id="odoDate" value="' + todayStr() + '"></div>' +
+    '<button class="btn" onclick="addOdometer()">Log Reading</button>' +
+    '</div></div>';
+
+  if (unknown.length) {
+    html += '<div class="card" style="border-left:4px solid var(--muted)"><h2>&#9888;&#65039; ' + unknown.length +
+      ' item(s) have no history</h2><p class="muted small">Head to <b>Schedule &amp; Backfill</b> and enter when each was last done (or mark it unknown to plan an inspection).</p></div>';
+  }
+
+  html += '<div class="card"><h2>Maintenance Outlook <span class="sub">sorted by urgency — km or calendar, whichever hits first</span></h2>';
+  if (!items.length) html += '<div class="empty">No schedule items. Add some in Schedule &amp; Backfill.</div>';
+  items.forEach(function(x) {
+    html += dueItemHtml(x.item, x.p, nowKm);
+  });
+  html += '</div>';
+
+  document.getElementById("tab-dashboard").innerHTML = html;
+}
+
+function latestOdoDate() {
+  const log = veh().odometerLog;
+  if (!log.length) return null;
+  return log.reduce(function(m, r) { return r.date > m ? r.date : m; }, log[0].date);
+}
+
+function dueItemHtml(item, p, nowKm) {
+  if (p.status === "unknown") {
+    return '<div class="due-item gray"><div class="name">' + esc(item.name) +
+      ' <span class="cat-tag">' + esc(item.category) + '</span></div>' +
+      '<div class="detail">No history — backfill or log a service</div>' +
+      '<span class="badge gray">Unknown</span>' +
+      '<button class="btn small secondary" onclick="openLogService(\'' + item.id + '\')">Log Done</button></div>';
+  }
+  const badge = p.status === "red" ? '<span class="badge red">Overdue</span>'
+              : p.status === "amber" ? '<span class="badge amber">Due Soon</span>'
+              : '<span class="badge green">OK</span>';
+  let whenPrimary, whenDetail;
+  if (p.status === "red") {
+    whenPrimary = p.kmRemaining != null && p.kmRemaining <= 0
+      ? Math.abs(Math.round(p.kmRemaining)).toLocaleString("en-CA") + " km overdue"
+      : "overdue since " + fmtDate(p.dueDate);
+    whenDetail = "do it ASAP";
+  } else {
+    whenPrimary = "~" + fmtDate(p.projectedDate);
+    whenDetail = (p.kmRemaining != null ? "in " + Math.round(p.kmRemaining).toLocaleString("en-CA") + " km" : "") +
+      (p.limiter === "date" ? (p.kmRemaining != null ? " · " : "") + "calendar-limited" : "");
+  }
+  let pct = 0;
+  if (p.kmRemaining != null && item.intervalKm) {
+    pct = Math.min(100, Math.max(0, 100 * (1 - p.kmRemaining / item.intervalKm)));
+  } else if (p.daysRemaining != null && item.intervalMonths) {
+    pct = Math.min(100, Math.max(0, 100 * (1 - p.daysRemaining / (item.intervalMonths * 30.4))));
+  }
+  const barColor = p.status === "red" ? "var(--red)" : p.status === "amber" ? "var(--amber)" : "var(--green)";
+  return '<div class="due-item ' + p.status + '">' +
+    '<div style="flex:1;min-width:220px"><div class="name">' + esc(item.name) +
+    ' <span class="cat-tag">' + esc(item.category) + '</span></div>' +
+    '<div class="detail">last: ' + fmtKm(item.lastKm) + (item.lastDate ? " on " + fmtDate(item.lastDate) : "") +
+    ' · due: ' + (p.dueKm != null ? fmtKm(p.dueKm) : "") + (p.dueDate ? (p.dueKm != null ? " or " : "") + fmtDate(p.dueDate) : "") + '</div>' +
+    '<div class="progress"><div style="width:' + pct.toFixed(0) + '%;background:' + barColor + '"></div></div></div>' +
+    '<div class="when"><div class="primary">' + whenPrimary + '</div><div class="detail">' + whenDetail + '</div></div>' +
+    badge +
+    '<button class="btn small secondary" onclick="openLogService(\'' + item.id + '\')">Log Done</button>' +
+    '</div>';
+}
+
+function addOdometer() {
+  const km = Number(document.getElementById("odoKm").value);
+  const date = document.getElementById("odoDate").value;
+  if (!km || !date) { toast("Enter a km reading and date", true); return; }
+  veh().odometerLog.push({ date: date, km: km });
+  save();
+  toast("Odometer logged: " + fmtKm(km));
+  render();
+}
+
+/* ---------- Schedule & Backfill ---------- */
+function renderSchedule() {
+  const v = veh();
+  let html = '<div class="card"><h2>Service Schedule <span class="sub">severe-condition intervals pre-loaded — edit anything. Fill in "last done" to backfill history.</span></h2>' +
+    '<div style="overflow-x:auto"><table><thead><tr>' +
+    '<th>Item</th><th>Interval</th><th>Last done (km)</th><th>Last done (date)</th><th>Unknown?</th><th></th>' +
+    '</tr></thead><tbody>';
+  v.schedule.forEach(function(it) {
+    const interval = [
+      it.intervalKm != null ? Math.round(it.intervalKm).toLocaleString("en-CA") + " km" : null,
+      it.intervalMonths != null ? it.intervalMonths + " mo" : null
+    ].filter(Boolean).join(" / ") || "—";
+    html += "<tr>" +
+      '<td><b>' + esc(it.name) + '</b> <span class="cat-tag">' + esc(it.category) + '</span>' +
+      (it.notes ? '<div class="muted small">' + esc(it.notes) + '</div>' : "") + "</td>" +
+      "<td>" + interval + "</td>" +
+      '<td><input type="number" style="width:100px" value="' + (it.lastKm != null ? it.lastKm : "") + '" onchange="backfill(\'' + it.id + '\',\'lastKm\',this.value)"></td>' +
+      '<td><input type="date" value="' + (it.lastDate || "") + '" onchange="backfill(\'' + it.id + '\',\'lastDate\',this.value)"></td>' +
+      '<td style="text-align:center"><input type="checkbox" ' + (it.unknown ? "checked" : "") + ' onchange="backfill(\'' + it.id + '\',\'unknown\',this.checked)"></td>' +
+      '<td style="white-space:nowrap"><button class="icon-btn edit" title="Edit item" onclick="openEditItem(\'' + it.id + '\')">&#9998;</button>' +
+      '<button class="icon-btn" title="Delete item" onclick="deleteItem(\'' + it.id + '\')">&#10005;</button></td>' +
+      "</tr>";
+  });
+  html += "</tbody></table></div>" +
+    '<div style="margin-top:14px"><button class="btn" onclick="openEditItem(null)">+ Add Schedule Item</button></div></div>';
+  document.getElementById("tab-schedule").innerHTML = html;
+}
+
+function backfill(id, field, value) {
+  const it = veh().schedule.find(function(s) { return s.id === id; });
+  if (!it) return;
+  if (field === "lastKm") it.lastKm = value === "" ? null : Number(value);
+  if (field === "lastDate") it.lastDate = value || null;
+  if (field === "unknown") it.unknown = !!value;
+  if (field !== "unknown" && (it.lastKm != null || it.lastDate)) it.unknown = false;
+  save();
+}
+
+function deleteItem(id) {
+  const it = veh().schedule.find(function(s) { return s.id === id; });
+  if (!it) return;
+  if (!confirm('Delete "' + it.name + '" from the schedule? Its log entries are kept.')) return;
+  const v = veh();
+  v.schedule = v.schedule.filter(function(s) { return s.id !== id; });
+  if (!v.deletedDefaults) v.deletedDefaults = [];
+  if (v.deletedDefaults.indexOf(it.name) === -1) v.deletedDefaults.push(it.name);
+  save();
+  render();
+}
+
+function openEditItem(id) {
+  const it = id ? veh().schedule.find(function(s) { return s.id === id; }) : null;
+  const m = document.getElementById("modal");
+  m.innerHTML = "<h3>" + (it ? "Edit" : "Add") + " Schedule Item</h3>" +
+    '<div class="form-row"><div style="flex:1"><label>Name</label><input id="ei_name" style="width:100%" value="' + esc(it ? it.name : "") + '"></div></div>' +
+    '<div class="form-row"><div><label>Category</label><input id="ei_cat" value="' + esc(it ? it.category : "General") + '"></div>' +
+    '<div><label>Interval km (blank = none)</label><input type="number" id="ei_km" value="' + (it && it.intervalKm != null ? it.intervalKm : "") + '"></div>' +
+    '<div><label>Interval months (blank = none)</label><input type="number" id="ei_mo" value="' + (it && it.intervalMonths != null ? it.intervalMonths : "") + '"></div></div>' +
+    '<div class="form-row"><div style="flex:1"><label>Notes</label><textarea id="ei_notes" rows="2" style="width:100%">' + esc(it ? it.notes : "") + "</textarea></div></div>" +
+    '<div class="form-row"><button class="btn" onclick="saveItem(' + (it ? "'" + it.id + "'" : "null") + ')">Save</button>' +
+    '<button class="btn secondary" onclick="document.getElementById(\'modal\').close()">Cancel</button></div>';
+  m.showModal();
+}
+
+function saveItem(id) {
+  const name = document.getElementById("ei_name").value.trim();
+  if (!name) { toast("Name required", true); return; }
+  const km = document.getElementById("ei_km").value;
+  const mo = document.getElementById("ei_mo").value;
+  const data = {
+    name: name,
+    category: document.getElementById("ei_cat").value.trim() || "General",
+    intervalKm: km === "" ? null : Number(km),
+    intervalMonths: mo === "" ? null : Number(mo),
+    notes: document.getElementById("ei_notes").value.trim()
+  };
+  if (id) {
+    Object.assign(veh().schedule.find(function(s) { return s.id === id; }), data);
+  } else {
+    veh().schedule.push(Object.assign({ id: uid(), lastKm: null, lastDate: null, unknown: false }, data));
+  }
+  save();
+  document.getElementById("modal").close();
+  render();
+}
+
+/* ---------- Service Log ---------- */
+function renderServiceLog() {
+  const v = veh();
+  const entries = v.serviceLog.slice().sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+  let html = '<div class="card"><h2>Log a Service</h2>' + serviceFormHtml(null) + "</div>";
+  html += '<div class="card"><h2>Service History <span class="sub">' + entries.length + " entries</span></h2>";
+  if (!entries.length) html += '<div class="empty">Nothing logged yet.</div>';
+  else {
+    html += '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Km</th><th>Service</th><th>Cost</th><th>Notes</th><th></th></tr></thead><tbody>';
+    entries.forEach(function(e) {
+      html += "<tr><td>" + fmtDate(e.date) + "</td><td>" + fmtKm(e.km) + "</td><td><b>" + esc(e.title) + "</b></td>" +
+        "<td>" + fmtMoney(e.cost) + "</td><td class='muted small'>" + esc(e.notes || "") + "</td>" +
+        '<td><button class="icon-btn" title="Delete" onclick="deleteService(\'' + e.id + '\')">&#10005;</button></td></tr>';
+    });
+    html += "</tbody></table></div>";
+    const total = entries.reduce(function(s, e) { return s + (Number(e.cost) || 0); }, 0);
+    html += '<p class="muted small" style="margin-top:8px">Total logged spend: <b>' + fmtMoney(total) + "</b></p>";
+  }
+  html += "</div>";
+  document.getElementById("tab-servicelog").innerHTML = html;
+}
+
+function serviceFormHtml(preselectId) {
+  const v = veh();
+  let opts = '<option value="">— custom / one-off —</option>';
+  v.schedule.forEach(function(s) {
+    opts += '<option value="' + s.id + '"' + (s.id === preselectId ? " selected" : "") + ">" + esc(s.name) + "</option>";
+  });
+  return '<div class="form-row">' +
+    '<div><label>Schedule item</label><select id="sv_item" style="min-width:230px">' + opts + "</select></div>" +
+    '<div><label>Custom title (if one-off)</label><input id="sv_title" placeholder="e.g. Replaced ball joint"></div>' +
+    "</div><div class='form-row'>" +
+    '<div><label>Date</label><input type="date" id="sv_date" value="' + todayStr() + '"></div>' +
+    '<div><label>Odometer (km)</label><input type="number" id="sv_km" value="' + Math.round(currentKm()) + '"></div>' +
+    '<div><label>Cost (CAD, optional)</label><input type="number" id="sv_cost" step="0.01" placeholder="0.00"></div>' +
+    "</div><div class='form-row'>" +
+    '<div style="flex:1"><label>Notes / parts used</label><input id="sv_notes" style="width:100%" placeholder="brand, part numbers, torque values..."></div>' +
+    '<button class="btn" onclick="addService()">Save Entry</button></div>';
+}
+
+function openLogService(scheduleId) {
+  showTab("servicelog");
+  const sel = document.getElementById("sv_item");
+  if (sel) { sel.value = scheduleId; window.scrollTo(0, 0); }
+}
+
+function addService() {
+  const itemId = document.getElementById("sv_item").value || null;
+  const customTitle = document.getElementById("sv_title").value.trim();
+  const date = document.getElementById("sv_date").value;
+  const km = Number(document.getElementById("sv_km").value);
+  const cost = document.getElementById("sv_cost").value;
+  const notes = document.getElementById("sv_notes").value.trim();
+  const v = veh();
+  const sched = itemId ? v.schedule.find(function(s) { return s.id === itemId; }) : null;
+  const title = sched ? sched.name : customTitle;
+  if (!title) { toast("Pick a schedule item or enter a title", true); return; }
+  if (!date || !km) { toast("Date and odometer required", true); return; }
+  v.serviceLog.push({ id: uid(), date: date, km: km, itemId: itemId, title: title,
+                      cost: cost === "" ? null : Number(cost), notes: notes });
+  if (sched && (sched.lastKm == null || km >= sched.lastKm)) {
+    sched.lastKm = km;
+    sched.lastDate = date;
+    sched.unknown = false;
+  }
+  // A service entry is also an odometer data point
+  if (km > 0) v.odometerLog.push({ date: date, km: km });
+  save();
+  toast("Service logged: " + title);
+  render();
+}
+
+function deleteService(id) {
+  if (!confirm("Delete this service entry? (Schedule 'last done' values are not rolled back.)")) return;
+  const v = veh();
+  v.serviceLog = v.serviceLog.filter(function(e) { return e.id !== id; });
+  save();
+  render();
+}
+
+/* ---------- Mods & Upgrades ---------- */
+function renderMods() {
+  const v = veh();
+  const mods = v.mods.slice().sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+  let html = '<div class="card"><h2>Log a Mod / Upgrade</h2><div class="form-row">' +
+    '<div style="flex:1"><label>What was installed / changed</label><input id="md_title" style="width:100%" placeholder="e.g. Bilstein 5100 front shocks @ 0.85&quot;"></div>' +
+    "</div><div class='form-row'>" +
+    '<div><label>Date</label><input type="date" id="md_date" value="' + todayStr() + '"></div>' +
+    '<div><label>Odometer (km)</label><input type="number" id="md_km" value="' + Math.round(currentKm()) + '"></div>' +
+    '<div><label>Cost (CAD)</label><input type="number" id="md_cost" step="0.01" placeholder="0.00"></div>' +
+    '<div style="flex:1"><label>Part numbers</label><input id="md_parts" style="width:100%" placeholder="e.g. 24-239370"></div>' +
+    "</div><div class='form-row'>" +
+    '<div style="flex:1"><label>Notes</label><input id="md_notes" style="width:100%" placeholder="install notes, torque specs, supplier..."></div>' +
+    '<button class="btn" onclick="addMod()">Save Mod</button></div></div>';
+
+  html += '<div class="card"><h2>Build History <span class="sub">' + mods.length + " entries</span></h2>";
+  if (!mods.length) html += '<div class="empty">No mods logged yet.</div>';
+  else {
+    html += '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Km</th><th>Mod</th><th>Parts</th><th>Cost</th><th>Notes</th><th></th></tr></thead><tbody>';
+    mods.forEach(function(m) {
+      html += "<tr><td>" + fmtDate(m.date) + "</td><td>" + fmtKm(m.km) + "</td><td><b>" + esc(m.title) + "</b></td>" +
+        "<td class='muted small'>" + esc(m.parts || "") + "</td><td>" + fmtMoney(m.cost) + "</td>" +
+        "<td class='muted small'>" + esc(m.notes || "") + "</td>" +
+        '<td><button class="icon-btn" title="Delete" onclick="deleteMod(\'' + m.id + '\')">&#10005;</button></td></tr>';
+    });
+    html += "</tbody></table></div>";
+    const total = mods.reduce(function(s, m) { return s + (Number(m.cost) || 0); }, 0);
+    html += '<p class="muted small" style="margin-top:8px">Total build spend: <b>' + fmtMoney(total) + "</b></p>";
+  }
+  html += "</div>";
+  document.getElementById("tab-mods").innerHTML = html;
+}
+
+function addMod() {
+  const title = document.getElementById("md_title").value.trim();
+  if (!title) { toast("Describe the mod first", true); return; }
+  veh().mods.push({
+    id: uid(),
+    title: title,
+    date: document.getElementById("md_date").value || todayStr(),
+    km: Number(document.getElementById("md_km").value) || null,
+    cost: document.getElementById("md_cost").value === "" ? null : Number(document.getElementById("md_cost").value),
+    parts: document.getElementById("md_parts").value.trim(),
+    notes: document.getElementById("md_notes").value.trim()
+  });
+  save();
+  toast("Mod logged");
+  render();
+}
+
+function deleteMod(id) {
+  if (!confirm("Delete this mod entry?")) return;
+  veh().mods = veh().mods.filter(function(m) { return m.id !== id; });
+  save();
+  render();
+}
+
+/* ---------- Fuel ---------- */
+function renderFuel() {
+  const v = veh();
+  const log = v.fuelLog.slice().sort(function(a, b) { return a.km - b.km; });
+  let html = '<div class="card"><h2>Log a Fill-Up</h2><div class="form-row">' +
+    '<div><label>Date</label><input type="date" id="fu_date" value="' + todayStr() + '"></div>' +
+    '<div><label>Odometer (km)</label><input type="number" id="fu_km" value="' + Math.round(currentKm()) + '"></div>' +
+    '<div><label>Litres</label><input type="number" id="fu_l" step="0.01"></div>' +
+    '<div><label>Total price (CAD)</label><input type="number" id="fu_price" step="0.01"></div>' +
+    '<div><label>Full tank?</label><select id="fu_full"><option value="1">Yes</option><option value="0">Partial</option></select></div>' +
+    '<button class="btn" onclick="addFuel()">Save</button></div>' +
+    '<p class="muted small">L/100km is calculated between consecutive <b>full</b> fill-ups. Fill-ups also update the odometer.</p></div>';
+
+  // economy calc between consecutive full fills
+  const points = [];
+  let lastFull = null, carryLitres = 0;
+  log.forEach(function(f) {
+    if (lastFull != null) carryLitres += Number(f.litres) || 0;
+    if (f.full) {
+      if (lastFull != null && f.km > lastFull.km) {
+        const dist = f.km - lastFull.km;
+        points.push({ km: f.km, date: f.date, lp100: (carryLitres / dist) * 100 });
+      }
+      lastFull = f;
+      carryLitres = 0;
+    }
+  });
+
+  html += '<div class="card"><h2>Fuel Economy <span class="sub">' + points.length + " intervals</span></h2>";
+  if (points.length >= 2) html += fuelChartSvg(points);
+  if (points.length) {
+    const avg = points.reduce(function(s, p) { return s + p.lp100; }, 0) / points.length;
+    const recent = points.slice(-5);
+    const recentAvg = recent.reduce(function(s, p) { return s + p.lp100; }, 0) / recent.length;
+    html += '<div class="stat-row" style="margin-top:12px">' +
+      '<div class="stat"><div class="label">All-time avg</div><div class="value">' + avg.toFixed(1) + ' <small>L/100km</small></div></div>' +
+      '<div class="stat"><div class="label">Recent avg (last ' + recent.length + ')</div><div class="value">' + recentAvg.toFixed(1) + ' <small>L/100km</small></div></div>' +
+      "</div>";
+  } else {
+    html += '<div class="empty">Need two full fill-ups to calculate economy.</div>';
+  }
+  html += "</div>";
+
+  const entries = v.fuelLog.slice().sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+  html += '<div class="card"><h2>Fill-Up History</h2>';
+  if (!entries.length) html += '<div class="empty">No fill-ups logged.</div>';
+  else {
+    html += '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Km</th><th>Litres</th><th>Price</th><th>$/L</th><th>Full</th><th></th></tr></thead><tbody>';
+    entries.forEach(function(f) {
+      const perL = f.litres && f.price ? (f.price / f.litres).toFixed(3) : "—";
+      html += "<tr><td>" + fmtDate(f.date) + "</td><td>" + fmtKm(f.km) + "</td><td>" + (f.litres || "—") +
+        "</td><td>" + fmtMoney(f.price) + "</td><td>" + perL + "</td><td>" + (f.full ? "&#10004;" : "partial") + "</td>" +
+        '<td><button class="icon-btn" onclick="deleteFuel(\'' + f.id + '\')">&#10005;</button></td></tr>';
+    });
+    html += "</tbody></table></div>";
+  }
+  html += "</div>";
+  document.getElementById("tab-fuel").innerHTML = html;
+}
+
+function fuelChartSvg(points) {
+  const W = 720, H = 200, padL = 46, padR = 12, padT = 14, padB = 26;
+  const vals = points.map(function(p) { return p.lp100; });
+  const min = Math.floor(Math.min.apply(null, vals) - 1);
+  const max = Math.ceil(Math.max.apply(null, vals) + 1);
+  const x = function(i) { return padL + (i / (points.length - 1)) * (W - padL - padR); };
+  const y = function(v) { return padT + (1 - (v - min) / (max - min)) * (H - padT - padB); };
+  let grid = "", labels = "";
+  for (let g = min; g <= max; g += Math.max(1, Math.round((max - min) / 4))) {
+    grid += '<line x1="' + padL + '" y1="' + y(g) + '" x2="' + (W - padR) + '" y2="' + y(g) + '" stroke="#2c3540" stroke-width="1"/>';
+    labels += '<text x="' + (padL - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + "</text>";
+  }
+  const poly = points.map(function(p, i) { return x(i).toFixed(1) + "," + y(p.lp100).toFixed(1); }).join(" ");
+  let dots = "";
+  points.forEach(function(p, i) {
+    dots += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.lp100).toFixed(1) + '" r="3.5" fill="var(--accent)"><title>' +
+      p.lp100.toFixed(1) + " L/100km — " + p.date + "</title></circle>";
+  });
+  const firstLbl = '<text x="' + padL + '" y="' + (H - 6) + '">' + points[0].date + "</text>";
+  const lastLbl = '<text x="' + (W - padR) + '" y="' + (H - 6) + '" text-anchor="end">' + points[points.length - 1].date + "</text>";
+  return '<svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">' +
+    grid + labels +
+    '<polyline points="' + poly + '" fill="none" stroke="var(--accent)" stroke-width="2"/>' +
+    dots + firstLbl + lastLbl + "</svg>";
+}
+
+function addFuel() {
+  const km = Number(document.getElementById("fu_km").value);
+  const litres = Number(document.getElementById("fu_l").value);
+  const date = document.getElementById("fu_date").value;
+  if (!km || !litres || !date) { toast("Date, odometer and litres required", true); return; }
+  const price = document.getElementById("fu_price").value;
+  veh().fuelLog.push({
+    id: uid(), date: date, km: km, litres: litres,
+    price: price === "" ? null : Number(price),
+    full: document.getElementById("fu_full").value === "1"
+  });
+  veh().odometerLog.push({ date: date, km: km });
+  save();
+  toast("Fill-up logged");
+  render();
+}
+
+function deleteFuel(id) {
+  if (!confirm("Delete this fill-up?")) return;
+  veh().fuelLog = veh().fuelLog.filter(function(f) { return f.id !== id; });
+  save();
+  render();
+}
+
+/* ---------- Settings ---------- */
+function renderSettings() {
+  const v = veh();
+  let html = '<div class="card"><h2>Backup &amp; Restore</h2>' +
+    '<p class="muted small" style="margin-bottom:10px">Data lives in this browser\'s storage and auto-saves. Export a JSON backup regularly and keep it in the Smart Truck folder — that\'s your insurance against cleared browser data.</p>' +
+    '<div class="form-row">' +
+    '<button class="btn" onclick="exportData()">&#11015; Export Backup (JSON)</button>' +
+    '<button class="btn secondary" onclick="document.getElementById(\'importFile\').click()">&#11014; Import Backup</button>' +
+    '<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0])">' +
+    "</div></div>";
+
+  html += '<div class="card"><h2>Vehicle: ' + esc(v.name) + "</h2>" +
+    '<div class="form-row">' +
+    '<div style="flex:1"><label>Name</label><input id="vs_name" style="width:100%" value="' + esc(v.name) + '"></div>' +
+    '<div style="flex:1"><label>Details</label><input id="vs_details" style="width:100%" value="' + esc(v.details || "") + '"></div>' +
+    "</div><div class='form-row'>" +
+    '<div><label>km/day override (blank = auto)</label><input type="number" id="vs_rate" value="' + (v.kmPerDayOverride || "") + '"></div>' +
+    '<button class="btn" onclick="saveVehicleSettings()">Save</button>' +
+    "</div>" +
+    '<div class="form-row" style="margin-top:6px">' +
+    '<button class="btn danger small" onclick="deleteVehicle()">Delete This Vehicle</button>' +
+    "</div></div>";
+
+  html += '<div class="card"><h2>Add a Vehicle</h2><div class="form-row">' +
+    '<div style="flex:1"><label>Name</label><input id="nv_name" placeholder="e.g. 2008 Corolla" style="width:100%"></div>' +
+    '<div><label>Current km</label><input type="number" id="nv_km" placeholder="0"></div>' +
+    '<div><label>Starter schedule</label><select id="nv_tpl"><option value="generic">Generic template</option><option value="empty">Empty</option></select></div>' +
+    '<button class="btn" onclick="addVehicle()">Add Vehicle</button></div></div>';
+
+  html += '<div class="card"><h2>Odometer History <span class="sub">powers the km/day average — most recent first</span></h2>';
+  const odo = v.odometerLog.slice().sort(function(a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 25);
+  if (!odo.length) html += '<div class="empty">No readings.</div>';
+  else {
+    html += "<table><thead><tr><th>Date</th><th>Km</th><th></th></tr></thead><tbody>";
+    odo.forEach(function(r) {
+      html += "<tr><td>" + fmtDate(r.date) + "</td><td>" + fmtKm(r.km) + "</td>" +
+        '<td><button class="icon-btn" onclick="deleteOdo(\'' + r.date + '\',' + r.km + ')">&#10005;</button></td></tr>';
+    });
+    html += "</tbody></table>";
+  }
+  html += "</div>";
+  document.getElementById("tab-settings").innerHTML = html;
+}
+
+function saveVehicleSettings() {
+  const v = veh();
+  v.name = document.getElementById("vs_name").value.trim() || v.name;
+  v.details = document.getElementById("vs_details").value.trim();
+  const r = document.getElementById("vs_rate").value;
+  v.kmPerDayOverride = r === "" ? null : Number(r);
+  save();
+  toast("Saved");
+  render();
+}
+
+function addVehicle() {
+  const name = document.getElementById("nv_name").value.trim();
+  if (!name) { toast("Vehicle name required", true); return; }
+  const km = Number(document.getElementById("nv_km").value) || 0;
+  const tpl = document.getElementById("nv_tpl").value;
+  const id = uid();
+  state.vehicles.push({
+    id: id, name: name, details: "",
+    odometerLog: km ? [{ date: todayStr(), km: km }] : [],
+    kmPerDayOverride: null,
+    schedule: tpl === "generic" ? genericScheduleTemplate() : [],
+    serviceLog: [], mods: [], fuelLog: []
+  });
+  state.activeVehicleId = id;
+  save();
+  toast("Vehicle added");
+  render();
+}
+
+function deleteVehicle() {
+  if (state.vehicles.length <= 1) { toast("Can't delete the only vehicle", true); return; }
+  const v = veh();
+  if (!confirm('Delete "' + v.name + '" and ALL its logs? This cannot be undone (unless you have a backup).')) return;
+  state.vehicles = state.vehicles.filter(function(x) { return x.id !== v.id; });
+  state.activeVehicleId = state.vehicles[0].id;
+  save();
+  render();
+}
+
+function deleteOdo(date, km) {
+  const v = veh();
+  const i = v.odometerLog.findIndex(function(r) { return r.date === date && r.km === km; });
+  if (i >= 0) { v.odometerLog.splice(i, 1); save(); render(); }
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "truck-maintenance-backup-" + todayStr() + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Backup downloaded — move it into the Smart Truck folder");
+}
+
+function importData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.vehicles || !Array.isArray(data.vehicles)) throw new Error("Not a valid backup");
+      if (!confirm("Replace ALL current data with this backup?")) return;
+      state = data;
+      save();
+      toast("Backup restored");
+      render();
+    } catch (err) {
+      toast("Import failed: " + err.message, true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- Toast ---------- */
+let toastTimer = null;
+function toast(msg, isError) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.background = isError ? "var(--red)" : "var(--green)";
+  t.style.color = isError ? "#2a0f0f" : "#10241a";
+  t.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.style.display = "none"; }, 2600);
+}
+
+/* ---------- Boot ---------- */
+load();
+render();
+
+/* Offline support when hosted (PWA). No-op when opened as a local file. */
+if ("serviceWorker" in navigator &&
+    (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("sw.js").catch(function() {});
+}
+</script>
+</body>
+</html>

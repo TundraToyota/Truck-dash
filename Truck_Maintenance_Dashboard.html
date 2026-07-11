@@ -309,6 +309,67 @@ function tundraScheduleTemplate() {
   });
 }
 
+/* ---------- Pre-loaded: 2008 Tacoma Access Cab, 4.0L 1GR-FE + TRD supercharger,
+   6-spd manual, 4WD, ~300,000 km, Alberta severe use ---------- */
+function tacomaScheduleTemplate() {
+  const items = [
+    ["Engine oil & filter (5W-30)", "Engine", 8000, 6, "Severe + supercharged. ~5.2 L with filter (1GR-FE). Boost is hard on oil — full synthetic, don't stretch intervals. TRD S/C wants 91+ octane fuel."],
+    ["Tire rotation", "Tires", 8000, 6, "Rotate front-to-rear same side; check pressures and airbag pressure while at it."],
+    ["Chassis / driveshaft lube", "Drivetrain", 8000, 6, "Grease driveshaft zerks at every oil change. While under there: check U-joints for play/rust dust and front CV boots for tears."],
+    ["Engine air filter", "Engine", 20000, 12, "The blower pulls more air — keep it clean. Use a dry OEM-style filter; oiled filters can foul the MAF sensor."],
+    ["Cabin air filter", "Interior", 20000, 12, "Behind glovebox."],
+    ["Spark plugs (iridium, colder heat range)", "Engine", 40000, 36, "Supercharged 1GR-FE eats plugs far faster than NA spec — TRD called for one-step-colder plugs and shorter intervals. Check gap per the S/C kit supplement (tighter than NA)."],
+    ["Supercharger self-contained oil", "Engine", 90000, 60, "TRD/Magnuson (Eaton TVS) unit is 'sealed for life' but the fluid degrades. Change with Eaton/GM blower oil ~90,000 km. Listen for bearing whine; check rotor play."],
+    ["Serpentine / supercharger belt", "Engine", 60000, 48, "Boost load shortens belt life. Inspect for glazing and cracks; keep a spare in the truck — a failed belt strands a S/C truck."],
+    ["Manual transmission oil", "Drivetrain", 60000, 48, "75W-90 GL-4 gear oil (GL-4, not GL-5 — GL-5 additives attack synchro brass). Notchy cold shifting = time to change."],
+    ["Transfer case fluid", "Drivetrain", 60000, 48, "75W-90 GL-4/GL-5 gear oil (older-style case — NOT the thin LF fluid the 2013+ Tundra uses)."],
+    ["Front differential fluid", "Drivetrain", 30000, 24, "Severe (off-road). 75W-85 or 75W-90 GL-5."],
+    ["Rear differential fluid", "Drivetrain", 30000, 24, "Severe (off-road/loaded with cap + bumper). 75W-90 GL-5."],
+    ["Engine coolant (Toyota SLLC pink)", "Cooling", 80000, 60, "Every 80,000 km / 5 yr after the first change. S/C heat makes cooling system health matter more — check rad condition at 300k."],
+    ["Brake fluid flush (incl. clutch hydraulics)", "Brakes", 40000, 36, "DOT 3. Bleed the clutch slave while you're at it — same fluid, same moisture problem, often forgotten."],
+    ["Front brake pads & rotors", "Brakes", 60000, null, "Wear estimate — heavy bumper + cap + boost = shorter pad life. Inspect at every rotation."],
+    ["Rear drum brakes & shoes", "Brakes", 80000, null, "Drums on the 2nd-gen Tacoma. Clean out dust, check adjuster and wheel cylinders for weeping at every second rotation."],
+    ["Tires (replace)", "Tires", 80000, 72, "Whichever first: tread or 6 years from DOT date."],
+    ["Battery", "Electrical", null, 60, "Load-test each fall after year 3."],
+    ["Wool-wax rust coating (reapply)", "Exterior", null, 12, "Alberta: reapply annually before winter — frame rails, cab/bed mounts, spring hangers, shackles, inside bumper mounts. At 300k this is the highest-value maintenance on the truck."],
+    ["Inspect ball joints & control arm bushings", "Suspension", 20000, 12, "Lower ball joints are a known Tacoma weak point — rock tire 12-6, pry-test, check boots. At 300k inspect religiously."],
+    ["Inspect tie rod ends (inner & outer)", "Steering", 20000, 12, "Rock tire 9-3 for play; check boots. Alignment after replacement."],
+    ["Inspect wheel bearings", "Suspension", 20000, 12, "Spin for growl; rock at 12-6 with the brake held to separate from ball joint play."],
+    ["Inspect leaf springs, add-a-leaf & airbags", "Suspension", 20000, 12, "Check for cracked/shifted leaves and broken center pins (loaded 2nd-gen packs crack), shackle and hanger bushings, hanger rust. Airbags: look for cracking, line chafe, and pressure loss — check pressure monthly when loaded."],
+    ["Inspect TRD Pro suspension (Fox)", "Suspension", 20000, 12, "Check Fox shock bodies for leaks/pitting, reservoir hoses, and mount bushings. Rebuildable — seepage means a rebuild, not replacement."],
+    ["Inspect brake hoses & hard lines", "Brakes", 20000, 12, "300k Alberta truck: rust scale on hard lines above the rear axle and along the frame is the thing to catch early. Any weeping = replace now."]
+  ];
+  return items.map(function(it, i) {
+    return { id: "t" + (i + 1), name: it[0], category: it[1], intervalKm: it[2],
+             intervalMonths: it[3], lastKm: null, lastDate: null, unknown: false, notes: it[4] };
+  });
+}
+
+function tacoma2008Vehicle() {
+  const sched = tacomaScheduleTemplate();
+  // Wool-wax coating: applied ~3 years ago (approx July 2023)
+  const wax = sched.find(function(s) { return s.name.indexOf("Wool-wax") === 0; });
+  if (wax) { wax.lastDate = "2023-07-01"; }
+  return {
+    id: "tacoma2008",
+    name: "2008 Tacoma Access Cab TRD S/C",
+    details: "4.0L 1GR-FE + TRD supercharger, 6-spd manual, 4WD, contractor cap — odometer ~300,000 km (estimate, update when confirmed)",
+    odometerLog: [{ date: todayStr(), km: 300000 }],
+    kmPerDayOverride: null,
+    schedule: sched,
+    serviceLog: [],
+    mods: [
+      { id: "tm1", date: null, km: null, title: "Factory TRD supercharger (Magnuson/Eaton TVS on 1GR-FE)", parts: "", cost: null, notes: "Install date unknown — edit when known. Requires 91+ octane." },
+      { id: "tm2", date: null, km: null, title: "ARB front bumper", parts: "", cost: null, notes: "" },
+      { id: "tm3", date: null, km: null, title: "High-rise contractor cap", parts: "", cost: null, notes: "" },
+      { id: "tm4", date: null, km: null, title: "3rd-gen TRD Pro suspension swap (Fox)", parts: "", cost: null, notes: "Fill in which components (coilovers, rear shocks) when convenient." },
+      { id: "tm5", date: null, km: null, title: "Add-a-leaf + rear air helper bags", parts: "", cost: null, notes: "Supports cap + bumper weight. Check bag pressure monthly when loaded." },
+      { id: "tm6", date: "2023-07-01", km: null, title: "Wool-wax style rust coating applied", parts: "", cost: null, notes: "Date approximate ('about 3 years ago' as of July 2026). Reapplication tracked on the schedule." }
+    ],
+    fuelLog: []
+  };
+}
+
 function genericScheduleTemplate() {
   const items = [
     ["Engine oil & filter", "Engine", 8000, 6],
@@ -335,6 +396,7 @@ function defaultState() {
   return {
     version: 1,
     activeVehicleId: "tundra",
+    seeded: { tacoma2008: true },
     vehicles: [{
       id: "tundra",
       name: "2014 Tundra DC SR5 5.7L",
@@ -345,14 +407,14 @@ function defaultState() {
       serviceLog: [],
       mods: [],
       fuelLog: []
-    }]
+    }, tacoma2008Vehicle()]
   };
 }
 
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { state = JSON.parse(raw); migrateNotes(); migrateNewItems(); return; }
+    if (raw) { state = JSON.parse(raw); migrateNotes(); migrateNewItems(); migrateSeedVehicles(); return; }
   } catch (e) { console.error(e); }
   state = defaultState();
   save();
@@ -396,6 +458,19 @@ function migrateNewItems() {
     if (!exists && deleted.indexOf(tpl.name) === -1) { tpl.id = uid(); v.schedule.push(tpl); changed = true; }
   });
   if (changed) save();
+}
+
+/* One-time: adds newly built-in vehicles to existing saved data. The seeded
+   flag means deleting the vehicle later won't resurrect it. */
+function migrateSeedVehicles() {
+  if (!state.seeded) state.seeded = {};
+  if (!state.seeded.tacoma2008) {
+    if (!state.vehicles.some(function(v) { return v.id === "tacoma2008"; })) {
+      state.vehicles.push(tacoma2008Vehicle());
+    }
+    state.seeded.tacoma2008 = true;
+    save();
+  }
 }
 
 function save() {
